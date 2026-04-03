@@ -1,70 +1,57 @@
-# Getting Started with Create React App
+🚀 Lin-Kernighan & Heuristiques de Graphes (Visualizer)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Ce projet est un outil interactif développé avec React et ReactFlow. Il permet de modéliser un graphe pondéré par deux critères et d'optimiser le chemin de parcours en utilisant des méthodes heuristiques inspirées de l'algorithme de Lin-Kernighan (2-opt, 3-opt, et Or-opt).
+🛠️ Fonctionnalités du Code
 
-## Available Scripts
+L'application transforme une saisie textuelle en un graphe dynamique et calcule un score d'optimisation basé sur une pondération multi-critères.
+1. Modélisation Multi-critères
 
-In the project directory, you can run:
+Le code utilise une formule de score combinée pour chaque arête :
+Score=0.5×Couˆt+0.5×Temps
 
-### `npm start`
+Cela permet de transformer un problème complexe à deux variables en un problème de recherche de chemin simple.
+2. Algorithmes d'Optimisation (Heuristiques)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+À chaque clic sur "Next Step", l'algorithme parcourt les voisinages du chemin actuel pour trouver une amélioration :
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+    2-opt : Inverse des segments du chemin pour éliminer les croisements.
 
-### `npm test`
+    3-opt (Node Removal) : Tente de simplifier le parcours en retirant des étapes inutiles.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+    Or-opt : Déplace un nœud à une autre position dans la séquence pour réduire le score total.
 
-### `npm run build`
+3. Visualisation Dynamique
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+    ReactFlow : Affiche les nœuds sur un cercle trigonométrique pour une clarté maximale.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+    Animation : Le chemin optimal calculé est mis en évidence par des arêtes rouges animées.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+📊 Données de Test (Fictives)
 
-### `npm run eject`
+Pour tester l'algorithme, vous pouvez copier-coller la chaîne suivante dans la zone de saisie de l'application :
+Plaintext
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+A-B : (12;11) , A-C : (2;3) , A-D : (15;14) , B-C : (10;9) , B-E : (8;7) , C-D : (4;5) , C-E : (6;5) , C-F : (9;10) , D-E : (3;4) , D-F : (11;12) , E-F : (7;6) , E-G : (5;4) , F-G : (2;3) , F-H : (8;9) , G-H : (4;3)
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+🚀 Installation et Lancement
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Le projet a été initialisé avec Create React App.
+1. Installation des dépendances
+Bash
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+npm install reactflow
 
-## Learn More
+2. Démarrage
+Bash
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+npm start
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+L'application sera disponible sur http://localhost:3000.
+3. Build pour la production
+Bash
 
-### Code Splitting
+npm run build
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+📖 En savoir plus
 
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Ce projet a été réalisé dans le cadre de l'étude des Méthodes Heuristiques. Il illustre comment des transformations locales (échanges d'arêtes) permettent d'approcher une solution optimale pour des problèmes de type Voyageur de Commerce (TSP) ou optimisation de réseaux.

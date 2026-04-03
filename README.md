@@ -26,7 +26,10 @@ $$Score = 0.5 \times \text{Coût} + 0.5 \times \text{Temps}$$
 
 ## 📊 Données de Test (Fictives)
 
-Pour tester la puissance de l'algorithme, copiez et collez cette chaîne dans le champ de texte de l'application :
+Pour tester la puissance de l'algorithme, copiez et collez ces chaîne dans le champ de texte de l'application :
 
 ```text
 A-B : (12;11) , A-C : (2;3) , A-D : (15;14) , B-C : (10;9) , B-E : (8;7) , C-D : (4;5) , C-E : (6;5) , C-F : (9;10) , D-E : (3;4) , D-F : (11;12) , E-F : (7;6) , E-G : (5;4) , F-G : (2;3) , F-H : (8;9) , G-H : (4;3)
+
+```text
+A-B : (4;6;8;5) , A-C : (6;4;7;3) , A-D : (9;5;6;8) , B-C : (2;2;3;4) , B-E : (5;3;6;7) , C-D : (3;5;4;2) , C-F : (7;6;9;5) , D-E : (4;2;5;6) , D-G : (8;7;4;9) , E-F : (3;4;2;3) , E-H : (5;7;6;8) , F-G : (2;5;3;4) , F-H : (4;3;7;2) , G-H : (6;6;5;7) , H-A : (1;2;3;4)

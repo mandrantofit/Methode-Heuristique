@@ -12,26 +12,34 @@ export default function App() {
   const [nodeNameToId, setNodeNameToId] = useState({});
 
   const parseEdges = () => {
-    // Format: "A-B : (3;5) , C-D : (2;4) , ..."
-    const edgeRegex = /(\w)-(\w)\s*:\s*\(([^;]+);([^)]+)\)/g;
+    // Format: "A-B : (12;11;10) , C-D : (2;3;4) , ..."
+    const edgeRegex = /(\w)-(\w)\s*:\s*\(([^)]+)\)/g;
     const edgesList = [];
     const nodes = new Set();
     let match;
+    let numCriteria = 0;
 
     while ((match = edgeRegex.exec(edgeInput)) !== null) {
       const from = match[1];
       const to = match[2];
-      const cost = parseFloat(match[3]);
-      const time = parseFloat(match[4]);
-      const score = 0.5 * cost + 0.5 * time;
+      const criteriaStr = match[3];
+      const criteria = criteriaStr.split(';').map(s => parseFloat(s.trim()));
+      
+      if (numCriteria === 0) numCriteria = criteria.length;
+      else if (criteria.length !== numCriteria) {
+        alert(`Nombre de critères incohérent. Toutes les arêtes doivent avoir ${numCriteria} critères.`);
+        return;
+      }
 
-      edgesList.push({ from, to, cost, time, score });
+      const score = criteria.reduce((sum, val) => sum + val, 0) / numCriteria; // Pondération égale
+      
+      edgesList.push({ from, to, criteria, score });
       nodes.add(from);
       nodes.add(to);
     }
 
     if (edgesList.length === 0) {
-      alert("Format invalide. Exemple: A-B : (3;5) , A-C : (4;4)");
+      alert("Format invalide. Exemple: A-B : (3;5) , A-C : (4;4;2)");
       return;
     }
 
@@ -55,7 +63,7 @@ export default function App() {
       id: idx.toString(),
       source: nameToId[e.from].toString(),
       target: nameToId[e.to].toString(),
-      label: `${e.cost.toFixed(1)};${e.time.toFixed(1)}`,
+      label: e.criteria.join(';'),
       animated: false,
     }));
 
@@ -170,7 +178,7 @@ export default function App() {
         <h1 style={{ fontSize: "24px", fontWeight: "bold" }}>Lin-Kernighan</h1>
 
         <div style={{ marginTop: "20px" }}>
-          <label>Arêtes (format: A-B : (3;5) , C-D : (2;4))</label>
+          <label>Arêtes (format: A-B : (3;5) , A-B : (3;5;2) , A-B : (3;5;2;4) pour plus de critères)</label>
           <textarea
             value={edgeInput}
             onChange={(e) => setEdgeInput(e.target.value)}
@@ -182,7 +190,7 @@ export default function App() {
               marginTop: "8px",
               fontFamily: "monospace",
             }}
-            placeholder="A-B : (3;5) , A-C : (4;4) , B-C : (2;3)"
+            placeholder="A-B : (3;5) , A-C : (4;4;2) , B-C : (2;3;1)"
           />
         </div>
 
@@ -213,8 +221,11 @@ export default function App() {
               <thead>
                 <tr style={{ backgroundColor: "#f0f0f0" }}>
                   <th style={{ border: "1px solid #ccc", padding: "6px" }}>De → Vers</th>
-                  <th style={{ border: "1px solid #ccc", padding: "6px" }}>Critère #1</th>
-                  <th style={{ border: "1px solid #ccc", padding: "6px" }}>Critère #2</th>
+                  {graph[0]?.criteria.map((_, idx) => (
+                    <th key={idx} style={{ border: "1px solid #ccc", padding: "6px" }}>
+                      Critère #{idx + 1}
+                    </th>
+                  ))}
                   <th style={{ border: "1px solid #ccc", padding: "6px" }}>Score</th>
                 </tr>
               </thead>
@@ -224,12 +235,11 @@ export default function App() {
                     <td style={{ border: "1px solid #ccc", padding: "6px" }}>
                       {edge.from} → {edge.to}
                     </td>
-                    <td style={{ border: "1px solid #ccc", padding: "6px", textAlign: "center" }}>
-                      {edge.cost.toFixed(1)}
-                    </td>
-                    <td style={{ border: "1px solid #ccc", padding: "6px", textAlign: "center" }}>
-                      {edge.time.toFixed(1)}
-                    </td>
+                    {edge.criteria.map((crit, critIdx) => (
+                      <td key={critIdx} style={{ border: "1px solid #ccc", padding: "6px", textAlign: "center" }}>
+                        {crit.toFixed(1)}
+                      </td>
+                    ))}
                     <td style={{ border: "1px solid #ccc", padding: "6px", textAlign: "center", fontWeight: "bold" }}>
                       {edge.score.toFixed(2)}
                     </td>

@@ -1,6 +1,6 @@
 # 🚀 Lin-Kernighan & Heuristiques de Graphes (Visualizer)
 
-Ce projet est un outil interactif développé avec **React** et **ReactFlow**. Il permet de modéliser un graphe pondéré par deux critères et d'optimiser le chemin de parcours en utilisant des méthodes heuristiques inspirées de l'algorithme de **Lin-Kernighan**.
+Ce projet est un outil interactif développé avec **React** et **ReactFlow**. Il permet de modéliser un graphe pondéré par **n critères** (détectés automatiquement) et d'optimiser le chemin de parcours en utilisant des méthodes heuristiques inspirées de l'algorithme de **Lin-Kernighan**.
 
 ---
 
@@ -9,8 +9,12 @@ Ce projet est un outil interactif développé avec **React** et **ReactFlow**. I
 L'application transforme une saisie textuelle en un graphe dynamique et calcule un score d'optimisation basé sur une pondération multi-critères.
 
 ### 1. Modélisation Multi-critères
-Le code utilise une formule de score combinée pour chaque arête afin de simplifier la prise de décision :
-$$Score = 0.5 \times \text{Coût} + 0.5 \times \text{Temps}$$
+Le code détecte automatiquement le nombre de critères par arête (séparés par `;`) et calcule un score équilibré :
+$$Score = \frac{1}{n} \times (\text{Critère}_1 + \text{Critère}_2 + \dots + \text{Critère}_n)$$
+
+Où \(n\) est le nombre de critères. Par exemple :
+- Pour 2 critères : \(Score = 0.5 \times \text{Critère}_1 + 0.5 \times \text{Critère}_2\)
+- Pour 3 critères : \(Score = \frac{1}{3} \times (\text{Critère}_1 + \text{Critère}_2 + \text{Critère}_3\)
 
 ### 2. Algorithmes d'Optimisation (Heuristiques)
 À chaque clic sur **"Next Step"**, l'algorithme explore le voisinage du chemin actuel via trois méthodes :
@@ -26,7 +30,7 @@ $$Score = 0.5 \times \text{Coût} + 0.5 \times \text{Temps}$$
 
 ## 📊 Données de Test (Fictives)
 
-Pour tester la puissance de l'algorithme, copiez et collez ces chaîne dans le champ de texte de l'application :
+Pour tester la puissance de l'algorithme, copiez et collez ces chaînes dans le champ de texte de l'application. Le format supporte **n critères** séparés par `;` (pondération égale automatique) :
 
 ```text
 A-B : (12;11) , A-C : (2;3) , A-D : (15;14) , B-C : (10;9) , B-E : (8;7) , C-D : (4;5) , C-E : (6;5) , C-F : (9;10) , D-E : (3;4) , D-F : (11;12) , E-F : (7;6) , E-G : (5;4) , F-G : (2;3) , F-H : (8;9) , G-H : (4;3)

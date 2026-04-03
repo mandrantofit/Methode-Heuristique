@@ -2,71 +2,79 @@ import React, { useState, useCallback } from "react";
 import ReactFlow, { Controls, Background, MiniMap } from "reactflow";
 import "reactflow/dist/style.css";
 
+// Composant principal de l'application Lin-Kernighan
 export default function App() {
-  const [edgeInput, setEdgeInput] = useState("");
-  const [edges, setEdges] = useState([]);
-  const [nodes, setNodes] = useState([]);
-  const [path, setPath] = useState([]);
-  const [step, setStep] = useState(0);
-  const [graph, setGraph] = useState([]);
-  const [nodeNameToId, setNodeNameToId] = useState({});
+  // États pour gérer l'interface et les données
+  const [edgeInput, setEdgeInput] = useState(""); // Texte saisi par l'utilisateur pour les arêtes
+  const [edges, setEdges] = useState([]); // Arêtes pour React Flow (visualisation)
+  const [nodes, setNodes] = useState([]); // Nœuds pour React Flow
+  const [path, setPath] = useState([]); // Chemin actuel (liste d'IDs de nœuds)
+  const [step, setStep] = useState(0); // Étape actuelle de l'optimisation
+  const [graph, setGraph] = useState([]); // Liste des arêtes avec leurs données (from, to, criteria, score)
+  const [nodeNameToId, setNodeNameToId] = useState({}); // Map pour convertir nom de nœud en ID numérique
 
+  // Fonction pour parser le texte saisi et créer le graphe
   const parseEdges = () => {
-    // Format: "A-B : (12;11;10) , C-D : (2;3;4) , ..."
+    // Regex pour extraire les arêtes au format "A-B : (val1;val2;...)"
     const edgeRegex = /(\w)-(\w)\s*:\s*\(([^)]+)\)/g;
     const edgesList = [];
-    const nodes = new Set();
+    const nodes = new Set(); // Ensemble des nœuds uniques
     let match;
-    let numCriteria = 0;
+    let numCriteria = 0; // Nombre de critères détecté
 
+    // Parcourir toutes les arêtes dans le texte
     while ((match = edgeRegex.exec(edgeInput)) !== null) {
-      const from = match[1];
-      const to = match[2];
-      const criteriaStr = match[3];
-      const criteria = criteriaStr.split(';').map(s => parseFloat(s.trim()));
+      const from = match[1]; // Nœud de départ
+      const to = match[2]; // Nœud d'arrivée
+      const criteriaStr = match[3]; // Chaîne des critères
+      const criteria = criteriaStr.split(';').map(s => parseFloat(s.trim())); // Convertir en nombres
       
+      // Vérifier la cohérence du nombre de critères
       if (numCriteria === 0) numCriteria = criteria.length;
       else if (criteria.length !== numCriteria) {
         alert(`Nombre de critères incohérent. Toutes les arêtes doivent avoir ${numCriteria} critères.`);
         return;
       }
 
-      const score = criteria.reduce((sum, val) => sum + val, 0) / numCriteria; // Pondération égale
+      // Calculer le score comme moyenne des critères (pondération égale)
+      const score = criteria.reduce((sum, val) => sum + val, 0) / numCriteria;
       
       edgesList.push({ from, to, criteria, score });
       nodes.add(from);
       nodes.add(to);
     }
 
+    // Vérifier qu'au moins une arête a été trouvée
     if (edgesList.length === 0) {
       alert("Format invalide. Exemple: A-B : (3;5) , A-C : (4;4;2)");
       return;
     }
 
-    // Créer la map node -> id et les nœuds react-flow
-    const nodeArray = Array.from(nodes).sort();
+    // Créer les nœuds et arêtes pour React Flow
+    const nodeArray = Array.from(nodes).sort(); // Trier les nœuds
     const nameToId = {};
     const rfNodes = nodeArray.map((name, idx) => {
-      nameToId[name] = idx;
+      nameToId[name] = idx; // Map nom -> ID
       return {
         id: idx.toString(),
         data: { label: name },
         position: {
-          x: 150 * Math.cos((idx / nodeArray.length) * 2 * Math.PI),
+          x: 150 * Math.cos((idx / nodeArray.length) * 2 * Math.PI), // Position en cercle
           y: 150 * Math.sin((idx / nodeArray.length) * 2 * Math.PI),
         },
       };
     });
 
-    // Créer les arêtes react-flow
+    // Créer les arêtes React Flow
     const rfEdges = edgesList.map((e, idx) => ({
       id: idx.toString(),
       source: nameToId[e.from].toString(),
       target: nameToId[e.to].toString(),
-      label: e.criteria.join(';'),
+      label: e.criteria.join(';'), // Label avec les critères
       animated: false,
     }));
 
+    // Mettre à jour les états
     setNodes(rfNodes);
     setNodeNameToId(nameToId);
     setEdges(rfEdges);
@@ -78,47 +86,50 @@ export default function App() {
     setStep(0);
   };
 
+  // Fonction pour calculer le score total d'un chemin
   const computeScore = (p, edgeList) => {
     let total = 0;
     for (let i = 0; i < p.length - 1; i++) {
+      // Trouver l'arête entre p[i] et p[i+1]
       const edge = edgeList.find(e => e.from === p[i] && e.to === p[i + 1]);
-      if (edge) total += edge.score;
-      else total += 1000;
+      if (edge) total += edge.score; // Ajouter le score de l'arête
+      else total += 1000; // Pénalité si l'arête n'existe pas
     }
     return total;
   };
 
+  // Fonction pour effectuer une étape d'optimisation Lin-Kernighan
   const nextStep = () => {
-    if (graph.length === 0) return;
+    if (graph.length === 0) return; // Rien à faire si pas de graphe
 
-    // Convertir les IDs en noms
+    // Convertir les IDs des nœuds en noms pour faciliter les manipulations
     const nodeIdToName = Object.fromEntries(
       Object.entries(nodeNameToId).map(([name, id]) => [id, name])
     );
     const pathNames = path.map(id => nodeIdToName[id]);
 
-    let bestPath = [...pathNames];
-    let bestScore = computeScore(pathNames, graph);
+    let bestPath = [...pathNames]; // Meilleur chemin trouvé
+    let bestScore = computeScore(pathNames, graph); // Score actuel
 
-    // 2-opt : inversion de segments
+    // 2-opt : tester les inversions de segments
     for (let i = 1; i < pathNames.length - 1; i++) {
       for (let j = i + 1; j < pathNames.length; j++) {
         let newPath = [...pathNames];
-        const segment = newPath.slice(i, j).reverse();
+        const segment = newPath.slice(i, j).reverse(); // Inverser le segment
         newPath.splice(i, j - i, ...segment);
 
         const newScore = computeScore(newPath, graph);
-        if (newScore < bestScore) {
+        if (newScore < bestScore) { // Si amélioration
           bestScore = newScore;
           bestPath = newPath;
         }
       }
     }
 
-    // 3-opt : supprimer un nœud
+    // 3-opt : tester la suppression d'un nœud (pour réduire le chemin)
     for (let i = 1; i < pathNames.length - 1; i++) {
       let newPath = [...pathNames];
-      newPath.splice(i, 1); // Retirer le nœud à l'index i
+      newPath.splice(i, 1); // Supprimer le nœud à la position i
 
       const newScore = computeScore(newPath, graph);
       if (newScore < bestScore) {
@@ -127,13 +138,13 @@ export default function App() {
       }
     }
 
-    // 3-opt : Or-opt (déplacer un segment)
+    // 3-opt : Or-opt (déplacer un nœud à une autre position)
     for (let i = 1; i < pathNames.length - 1; i++) {
       for (let j = 1; j < pathNames.length; j++) {
-        if (i === j || i + 1 === j) continue;
+        if (i === j || i + 1 === j) continue; // Éviter les déplacements inutiles
         let newPath = [...pathNames];
-        const node = newPath.splice(i, 1)[0];
-        newPath.splice(j > i ? j - 1 : j, 0, node);
+        const node = newPath.splice(i, 1)[0]; // Extraire le nœud
+        newPath.splice(j > i ? j - 1 : j, 0, node); // Le replacer ailleurs
 
         const newScore = computeScore(newPath, graph);
         if (newScore < bestScore) {
@@ -143,42 +154,48 @@ export default function App() {
       }
     }
 
-    // Convertir les noms en IDs
+    // Mettre à jour le chemin et l'étape
     const bestPathIds = bestPath.map(name => nodeNameToId[name]);
     setPath(bestPathIds);
     setStep(step + 1);
 
-    // Mettre en évidence le chemin dans le graphe
+    // Mettre en évidence le chemin optimal dans la visualisation
     const highlightedEdges = edges.map((e, idx) => {
       let isInPath = false;
+      // Vérifier si cette arête fait partie du meilleur chemin
       for (let i = 0; i < bestPath.length - 1; i++) {
-        if (bestPath[i] === Object.keys(nodeNameToId).find(k => nodeNameToId[k] === parseInt(e.source)) &&
-            bestPath[i + 1] === Object.keys(nodeNameToId).find(k => nodeNameToId[k] === parseInt(e.target))) {
+        const sourceName = Object.keys(nodeNameToId).find(k => nodeNameToId[k] === parseInt(e.source));
+        const targetName = Object.keys(nodeNameToId).find(k => nodeNameToId[k] === parseInt(e.target));
+        if (bestPath[i] === sourceName && bestPath[i + 1] === targetName) {
           isInPath = true;
           break;
         }
       }
       return {
         ...e,
-        animated: isInPath,
-        style: isInPath ? { stroke: "#ff0000", strokeWidth: 3 } : {},
+        animated: isInPath, // Animer si dans le chemin
+        style: isInPath ? { stroke: "#ff0000", strokeWidth: 3 } : {}, // Rouge et épais
       };
     });
     setEdges(highlightedEdges);
   };
 
+  // Préparer l'affichage du chemin actuel
   const nodeIdToName = Object.fromEntries(
     Object.entries(nodeNameToId).map(([name, id]) => [id, name])
   );
   const pathDisplay = path.map(id => nodeIdToName[id] || "?").join(" → ");
 
+  // Interface utilisateur
   return (
     <div style={{ display: "flex", height: "100vh" }}>
+      {/* Panneau gauche : contrôles et informations */}
       <div style={{ width: "30%", padding: "20px", overflowY: "auto", borderRight: "1px solid #ccc" }}>
         <h1 style={{ fontSize: "24px", fontWeight: "bold" }}>Lin-Kernighan</h1>
 
+        {/* Saisie des arêtes */}
         <div style={{ marginTop: "20px" }}>
-          <label>Arêtes (format: A-B : (3;5) , A-B : (3;5;2) , A-B : (3;5;2;4) pour plus de critères)</label>
+          <label>Arêtes (format: A-B : (3;5) ou A-B : (3;5;2) pour plus de critères)</label>
           <textarea
             value={edgeInput}
             onChange={(e) => setEdgeInput(e.target.value)}
